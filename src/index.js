@@ -5,6 +5,18 @@ import canonize from './canonize';
 const app = express();
 app.use(cors());
 
+ function clean(arr, deleteValue){
+    for (var i = 0; i < arr.length; i++)
+    {
+        if (arr[i] == deleteValue)
+        {
+            arr.splice(i, 1);
+            i--;
+        }
+    }
+    return arr;
+};
+
 app.get('/', (req, res) => {
   res.json({
     'Hello': 'Hello',
@@ -17,30 +29,35 @@ app.get('/task2A', (req, res) => {
 });
 
 app.get('/task2B', (req, res) => {
-    const fullname = req.query.fullname;
-    if(fullname.split(" ").length > 3 || fullname.split(" ").length < 1 || fullname ==''){
+    var fullname = req.query.fullname;
+    var parts = fullname.split(" ");
+    parts = clean(parts, null);
+    parts = clean(parts, "");
+    parts = clean(parts, undefined);
+    console.log('Parts:', parts);
+    if(parts.length > 3 || parts.length < 1 || fullname ==''){
       res.send('Invalid fullname');
     }
     var shortName = "";
-    var re=/^(?:[в-яёa-z]*[а-яёa-z][в-яёa-z]*$|[в-яёa-z]*\d[в-яёa-z][в-яёa-z]*$)/i
-    // /(?:[а-яА-ЯЁёa-zA-Z])/i;
-    shortName += fullname.split(" ")[fullname.split(" ").length-1];
-    if (!re.test(shortName)) {
-       res.send('Invalid fullname');
+    shortName += parts[parts.length-1];
+    var re = new RegExp('([0-9_/])', 'i');
+    if(re.test(shortName)){
+      res.send('Invalid fullname');
     }
-    if(fullname.split(" ").length > 1){
-      if (!re.test((fullname.split(" ")[0])[0])) {
+    shortName = (shortName[0].toUpperCase() + shortName.slice(1).toLowerCase())
+    if(parts.length > 1){
+      if (re.test(parts[0])) {
          res.send('Invalid fullname');
       }
       shortName += ' ';
-      shortName += ((fullname.split(" ")[0])[0] + '.');
+      shortName += ((parts[0])[0].toUpperCase() + '.');
     }
     if(fullname.split(" ").length > 2){
-      if (!re.test((fullname.split(" ")[1])[0])) {
+      if (re.test(parts[1])) {
          res.send('Invalid fullname');
       }
       shortName += ' ';
-      shortName += ((fullname.split(" ")[1])[0] + '.');
+      shortName += ((parts[1])[0].toUpperCase() + '.');
     }
     res.send(shortName.toString());
 });
